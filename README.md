@@ -28,3 +28,5 @@ Node.js 내장 테스트 러너로 검색 필터와 가격 계산을 확인합�
 
 - [KAF-001 기획서](docs/KAF-001_PLAN.md)
 - [KAF-001 완료 기준](docs/KAF-001_ACCEPTANCE.md)
+- [KAF-003 기획서](docs/KAF-003_PLAN.md)
+- [KAF-003 완료 기준](docs/KAF-003_ACCEPTANCE.md)
