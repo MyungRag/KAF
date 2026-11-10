@@ -7,18 +7,33 @@ function addDays(date, days) {
 const referenceDate = new Date();
 const departure = addDays(referenceDate, 78);
 
-function fare({ id, destinationCode, destination, region, latitude, longitude, airlineCode, airlineName, originCode = "ICN", direct = true, cabin = "economy", departureOffset, tripDays, priceExclTax, tax, sourceId = "KAF-DEMO" }) {
+// Airport reference points from the public-domain OurAirports dataset:
+// https://ourairports.com/data/
+export const AIRPORTS = {
+  ICN: { name: "인천국제공항", latitude: 37.469101, longitude: 126.450996 },
+  NRT: { name: "나리타 국제공항", latitude: 35.76858, longitude: 140.388714 },
+  BKK: { name: "수완나품 국제공항", latitude: 13.6811, longitude: 100.747002 },
+  DAD: { name: "다낭 국제공항", latitude: 16.0439, longitude: 108.198997 },
+  SIN: { name: "싱가포르 창이 국제공항", latitude: 1.35019, longitude: 103.994003 },
+  MXP: { name: "밀라노 말펜사 국제공항", latitude: 45.6306, longitude: 8.72811 },
+  CDG: { name: "파리 샤를 드골 공항", latitude: 49.00896, longitude: 2.554117 },
+  FCO: { name: "로마 피우미치노 공항", latitude: 41.804532, longitude: 12.251998 },
+};
+
+function fare({ id, destinationCode, destination, region, airlineCode, airlineName, originCode = "ICN", direct = true, cabin = "economy", departureOffset, tripDays, priceExclTax, tax, sourceId = "KAF-DEMO" }) {
   const departureDate = addDays(new Date(`${departure}T00:00:00Z`), departureOffset);
   const returnDate = addDays(new Date(`${departureDate}T00:00:00Z`), tripDays);
+  const airport = AIRPORTS[destinationCode];
   return {
     id,
     originCode,
     originName: originCode === "ICN" ? "인천" : "김포",
     destinationCode,
     destination,
+    destinationAirportName: airport.name,
     region,
-    latitude,
-    longitude,
+    latitude: airport.latitude,
+    longitude: airport.longitude,
     airlineCode,
     airlineName,
     alliance: ["KE", "AF", "DL", "CI", "VN"].includes(airlineCode) ? "SkyTeam" : null,
@@ -38,16 +53,16 @@ function fare({ id, destinationCode, destination, region, latitude, longitude, a
 }
 
 export const DEMO_OFFERS = [
-  fare({ id: "tokyo-ke", destinationCode: "NRT", destination: "도쿄", region: "asia", latitude: 35.68, longitude: 139.69, airlineCode: "KE", airlineName: "대한항공", departureOffset: 1, tripDays: 8, priceExclTax: 278000, tax: 42000 }),
-  fare({ id: "tokyo-oz", destinationCode: "NRT", destination: "도쿄", region: "asia", latitude: 35.68, longitude: 139.69, airlineCode: "OZ", airlineName: "아시아나항공", departureOffset: 0, tripDays: 9, priceExclTax: 225000, tax: 65000 }),
-  fare({ id: "bangkok-ke", destinationCode: "BKK", destination: "방콕", region: "asia", latitude: 13.75, longitude: 100.50, airlineCode: "KE", airlineName: "대한항공", departureOffset: 3, tripDays: 8, priceExclTax: 458000, tax: 52000 }),
-  fare({ id: "danang-ke", destinationCode: "DAD", destination: "다낭", region: "asia", latitude: 16.05, longitude: 108.20, airlineCode: "KE", airlineName: "대한항공", departureOffset: 4, tripDays: 8, priceExclTax: 420000, tax: 50000 }),
-  fare({ id: "danang-vn-transfer", destinationCode: "DAD", destination: "다낭", region: "asia", latitude: 16.05, longitude: 108.20, airlineCode: "VN", airlineName: "베트남항공", direct: false, departureOffset: 0, tripDays: 10, priceExclTax: 365000, tax: 55000 }),
-  fare({ id: "singapore-ke", destinationCode: "SIN", destination: "싱가포르", region: "asia", latitude: 1.35, longitude: 103.82, airlineCode: "KE", airlineName: "대한항공", departureOffset: 0, tripDays: 7, priceExclTax: 452000, tax: 48000 }),
-  fare({ id: "milan-af", destinationCode: "MXP", destination: "밀라노", region: "europe", latitude: 45.46, longitude: 9.19, airlineCode: "AF", airlineName: "에어프랑스", departureOffset: 1, tripDays: 9, priceExclTax: 755000, tax: 65000 }),
-  fare({ id: "paris-ke", destinationCode: "CDG", destination: "파리", region: "europe", latitude: 48.86, longitude: 2.35, airlineCode: "KE", airlineName: "대한항공", departureOffset: 0, tripDays: 8, priceExclTax: 842000, tax: 68000 }),
-  fare({ id: "rome-ke", destinationCode: "FCO", destination: "로마", region: "europe", latitude: 41.90, longitude: 12.50, airlineCode: "KE", airlineName: "대한항공", departureOffset: 5, tripDays: 9, priceExclTax: 780000, tax: 70000 }),
-  fare({ id: "seoul-business", destinationCode: "NRT", destination: "도쿄", region: "asia", latitude: 35.68, longitude: 139.69, airlineCode: "KE", airlineName: "대한항공", cabin: "business", departureOffset: 2, tripDays: 8, priceExclTax: 980000, tax: 90000 }),
+  fare({ id: "tokyo-ke", destinationCode: "NRT", destination: "도쿄", region: "asia", airlineCode: "KE", airlineName: "대한항공", departureOffset: 1, tripDays: 8, priceExclTax: 278000, tax: 42000 }),
+  fare({ id: "tokyo-oz", destinationCode: "NRT", destination: "도쿄", region: "asia", airlineCode: "OZ", airlineName: "아시아나항공", departureOffset: 0, tripDays: 9, priceExclTax: 225000, tax: 65000 }),
+  fare({ id: "bangkok-ke", destinationCode: "BKK", destination: "방콕", region: "asia", airlineCode: "KE", airlineName: "대한항공", departureOffset: 3, tripDays: 8, priceExclTax: 458000, tax: 52000 }),
+  fare({ id: "danang-ke", destinationCode: "DAD", destination: "다낭", region: "asia", airlineCode: "KE", airlineName: "대한항공", departureOffset: 4, tripDays: 8, priceExclTax: 420000, tax: 50000 }),
+  fare({ id: "danang-vn-transfer", destinationCode: "DAD", destination: "다낭", region: "asia", airlineCode: "VN", airlineName: "베트남항공", direct: false, departureOffset: 0, tripDays: 10, priceExclTax: 365000, tax: 55000 }),
+  fare({ id: "singapore-ke", destinationCode: "SIN", destination: "싱가포르", region: "asia", airlineCode: "KE", airlineName: "대한항공", departureOffset: 0, tripDays: 7, priceExclTax: 452000, tax: 48000 }),
+  fare({ id: "milan-af", destinationCode: "MXP", destination: "밀라노", region: "europe", airlineCode: "AF", airlineName: "에어프랑스", departureOffset: 1, tripDays: 9, priceExclTax: 755000, tax: 65000 }),
+  fare({ id: "paris-ke", destinationCode: "CDG", destination: "파리", region: "europe", airlineCode: "KE", airlineName: "대한항공", departureOffset: 0, tripDays: 8, priceExclTax: 842000, tax: 68000 }),
+  fare({ id: "rome-ke", destinationCode: "FCO", destination: "로마", region: "europe", airlineCode: "KE", airlineName: "대한항공", departureOffset: 5, tripDays: 9, priceExclTax: 780000, tax: 70000 }),
+  fare({ id: "seoul-business", destinationCode: "NRT", destination: "도쿄", region: "asia", airlineCode: "KE", airlineName: "대한항공", cabin: "business", departureOffset: 2, tripDays: 8, priceExclTax: 980000, tax: 90000 }),
 ];
 
 const HISTORICAL_PRICES = {
