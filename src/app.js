@@ -30,6 +30,12 @@ let selectedDestination = null;
 let currentSourceNotice = "예시 데이터 · 실시간 아님";
 
 if (map) {
+  map.getContainer().addEventListener("wheel", (event) => {
+    if (!event.ctrlKey || event.deltaY === 0) return;
+    event.preventDefault();
+    map.setZoom(map.getZoom() + (event.deltaY < 0 ? 1 : -1));
+  }, { passive: false });
+
   window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     minZoom: 0,
     maxZoom: 9,

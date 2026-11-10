@@ -18,6 +18,8 @@ python3 -m http.server 4173
 
 인터랙티브 지도는 저장소에 포함한 Leaflet 라이브러리와 OpenStreetMap 타일을 사용합니다. 타일을 불러오려면 인터넷 연결이 필요합니다. 지도 자료의 저작자 표시는 지도 오른쪽 아래에 표시됩니다. 목적지 표식은 [OurAirports](https://ourairports.com/data/)의 공항 기준점 좌표를 사용합니다. Leaflet 라이선스는 vendor/leaflet/LICENSE에 있습니다.
 
+지도 위에 마우스를 둔 상태에서 `Ctrl` 키와 마우스 휠을 함께 사용하면 확대·축소할 수 있습니다. `Ctrl` 없이 휠을 움직이면 페이지가 스크롤됩니다.
+
 ### 검사
 
 ```sh
