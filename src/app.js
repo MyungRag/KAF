@@ -1,4 +1,4 @@
-import { DEFAULTS, getDefaultDates } from "./data/demo-data.js";
+import { AIRPORTS, DEFAULTS, getDefaultDates } from "./data/demo-data.js";
 import { DemoFlightProvider } from "./data/flight-provider.js";
 import { formatPercent, formatWon } from "./domain/pricing.js";
 import { searchDestinations, sortDestinations, validateFilters } from "./domain/search.js";
@@ -8,7 +8,6 @@ const startInput = document.querySelector("#date-start");
 const endInput = document.querySelector("#date-end");
 const errorBox = document.querySelector("#form-error");
 const list = document.querySelector("#result-list");
-const markers = document.querySelector("#map-markers");
 const emptyState = document.querySelector("#empty-state");
 const resultCount = document.querySelector("#result-count");
 const resultSummary = document.querySelector("#result-summary");
@@ -16,9 +15,31 @@ const sortSelect = document.querySelector("#sort-select");
 const activeFilter = document.querySelector("#active-filter");
 
 const flightProvider = new DemoFlightProvider();
+const map = window.L?.map("map-canvas", {
+  minZoom: 0,
+  maxZoom: 9,
+  scrollWheelZoom: false,
+  maxBounds: [[-85, -180], [85, 180]],
+  maxBoundsViscosity: 1,
+}).fitBounds([[-60, -180], [82, 180]], { padding: [12, 12] });
+const routeLayer = map ? window.L.layerGroup().addTo(map) : null;
+const markerLayer = map ? window.L.layerGroup().addTo(map) : null;
+const mapMarkers = new Map();
 let currentResults = [];
 let selectedDestination = null;
 let currentSourceNotice = "예시 데이터 · 실시간 아님";
+
+if (map) {
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    minZoom: 0,
+    maxZoom: 9,
+    noWrap: true,
+    bounds: [[-85, -180], [85, 180]],
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  }).addTo(map);
+} else {
+  document.querySelector("#map-unavailable").hidden = false;
+}
 
 function isoDate(date) {
   return date.toISOString().slice(0, 10);
@@ -114,41 +135,150 @@ function cardMarkup(result) {
   </button>`;
 }
 
-function positionFor(result) {
-  const x = ((result.longitude + 180) / 360) * 100;
-  const y = ((90 - result.latitude) / 180) * 100;
-  const nudge = {
-    BKK: [0, -15],
-    DAD: [32, 10],
-    SIN: [45, 12],
-    MXP: [-12, -14],
-    CDG: [-28, -25],
-    FCO: [15, 12],
-  }[result.destinationCode] ?? [0, 0];
-  return { x, y, dx: nudge[0], dy: nudge[1] };
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
 }
 
-function markerMarkup(result) {
-  const { x, y, dx, dy } = positionFor(result);
-  const style = `left:calc(${x}% + ${dx}px);top:calc(${y}% + ${dy}px)`;
-  const markerClass = result.score === "buy" ? "opportunity-hot" : ["excellent", "good"].includes(result.score) ? "opportunity-good" : "";
-  const edgeClass = ["NRT", "BKK", "DAD", "SIN"].includes(result.destinationCode) ? "edge-east" : "";
-  return `<button class="map-marker ${markerClass} ${edgeClass}" type="button" style="${style}" data-destination="${result.destinationCode}" aria-label="${result.destination} 현재 예시 가격 ${formatWon(result.currentPrice)}, ${result.scoreDetails.label}" aria-pressed="${selectedDestination === result.destinationCode}"><span class="marker-dot"></span><span>${result.destination} <strong>${priceLabel(result.currentPrice)}</strong></span></button>`;
+function directRoutePoints(origin, destination, segments = 32) {
+  const radians = (degrees) => degrees * Math.PI / 180;
+  const vector = ({ latitude, longitude }) => {
+    const lat = radians(latitude);
+    const lon = radians(longitude);
+    return [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
+  };
+  const start = vector(origin);
+  const end = vector(destination);
+  const dot = Math.max(-1, Math.min(1, start.reduce((sum, value, index) => sum + value * end[index], 0)));
+  const angle = Math.acos(dot);
+  const sinAngle = Math.sin(angle);
+  const points = [];
+
+  for (let step = 0; step <= segments; step += 1) {
+    const fraction = step / segments;
+    const left = sinAngle === 0 ? 1 - fraction : Math.sin((1 - fraction) * angle) / sinAngle;
+    const right = sinAngle === 0 ? fraction : Math.sin(fraction * angle) / sinAngle;
+    const x = left * start[0] + right * end[0];
+    const y = left * start[1] + right * end[1];
+    const z = left * start[2] + right * end[2];
+    const latitude = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
+    const longitude = Math.atan2(y, x) * 180 / Math.PI;
+    points.push([latitude, longitude]);
+  }
+
+  return points;
+}
+
+function markerColor(result) {
+  if (result.score === "buy") return "#e89642";
+  if (["excellent", "good"].includes(result.score)) return "#2b9b77";
+  return "#087e85";
+}
+
+function markerStyle(result) {
+  const selected = selectedDestination === result.destinationCode;
+  return {
+    radius: selected ? 9 : 7,
+    color: "#ffffff",
+    weight: selected ? 3 : 2,
+    fillColor: markerColor(result),
+    fillOpacity: 1,
+  };
+}
+
+function popupMarkup(result) {
+  const airportName = AIRPORTS[result.destinationCode]?.name ?? result.destination;
+  const routeKind = result.direct ? "직항" : "경유";
+  return `<div class="map-popup">
+    <strong>${escapeHTML(result.destination)} · ${escapeHTML(result.destinationCode)}</strong>
+    <span>${escapeHTML(airportName)}</span>
+    <span>${escapeHTML(result.airlineName)} · ${routeKind}</span>
+    <b>왕복 ${formatWon(result.currentPrice)}</b>
+    <small>예시 데이터 · 실시간 아님</small>
+  </div>`;
+}
+
+function updateMapSelection() {
+  for (const [destinationCode, marker] of mapMarkers) {
+    const result = currentResults.find((item) => item.destinationCode === destinationCode);
+    if (result) marker.setStyle(markerStyle(result));
+  }
+}
+
+function renderMap(results) {
+  if (!map || !routeLayer || !markerLayer) return;
+  routeLayer.clearLayers();
+  markerLayer.clearLayers();
+  mapMarkers.clear();
+
+  const origin = results.length ? AIRPORTS[results[0].originCode] : null;
+  if (origin) {
+    const originMarker = window.L.circleMarker([origin.latitude, origin.longitude], {
+      className: "kaf-origin-marker",
+      radius: 6,
+      color: "#ffffff",
+      weight: 2,
+      fillColor: "#24485a",
+      fillOpacity: 1,
+    })
+      .bindPopup(`<strong>${escapeHTML(origin.name)} · ICN</strong><br><small>출발지 예시</small>`)
+      .bindTooltip("출발 · ICN")
+      .addTo(markerLayer);
+    originMarker.getElement()?.setAttribute("aria-label", `출발지 예시 · ${origin.name} · ICN`);
+  }
+
+  for (const result of results) {
+    const destination = AIRPORTS[result.destinationCode];
+    if (!destination) continue;
+
+    if (result.direct && origin) {
+      window.L.polyline(directRoutePoints(origin, destination), {
+        className: "kaf-direct-route",
+        color: markerColor(result),
+        weight: 2,
+        opacity: 0.72,
+      }).addTo(routeLayer);
+    }
+
+    const marker = window.L.circleMarker([destination.latitude, destination.longitude], {
+      ...markerStyle(result),
+      className: "kaf-destination-marker",
+    })
+      .bindTooltip(`${escapeHTML(result.destination)} · ${escapeHTML(result.destinationCode)}`)
+      .bindPopup(popupMarkup(result))
+      .addTo(markerLayer);
+    marker.on("click", () => {
+      selectedDestination = result.destinationCode;
+      renderLists(currentResults);
+      updateMapSelection();
+    });
+    marker.getElement()?.setAttribute(
+      "aria-label",
+      `${result.destination} · ${result.destinationCode} · ${result.airlineName} · ${result.direct ? "직항" : "경유"} · 예시 운임 ${formatWon(result.currentPrice)}`,
+    );
+    marker.getElement()?.setAttribute("data-map-destination", result.destinationCode);
+    mapMarkers.set(result.destinationCode, marker);
+  }
 }
 
 function updateSelection(destinationCode) {
   selectedDestination = destinationCode;
   renderLists(currentResults);
+  updateMapSelection();
 }
 
 function renderLists(results) {
   list.innerHTML = results.map(cardMarkup).join("");
-  markers.innerHTML = results.map(markerMarkup).join("");
   resultCount.textContent = `${results.length}곳`;
   emptyState.hidden = results.length !== 0;
   list.hidden = results.length === 0;
 
-  for (const element of document.querySelectorAll("[data-destination]")) {
+  for (const element of list.querySelectorAll("[data-destination]")) {
     element.addEventListener("click", () => updateSelection(element.dataset.destination));
   }
 }
@@ -169,6 +299,7 @@ async function runSearch() {
   if (error) {
     currentResults = [];
     renderLists(currentResults);
+    renderMap(currentResults);
     resultSummary.textContent = "검색 조건을 확인해 주세요.";
     return;
   }
@@ -186,6 +317,7 @@ async function runSearch() {
   activeFilter.textContent = `${currentFilterLabel(filters)} ×`;
   activeFilter.hidden = false;
   renderLists(currentResults);
+  renderMap(currentResults);
 }
 
 form.addEventListener("submit", (event) => {
@@ -221,4 +353,5 @@ activeFilter.addEventListener("click", () => {
 });
 
 setDateLimits();
+if (map) window.setTimeout(() => map.invalidateSize(), 0);
 void runSearch();

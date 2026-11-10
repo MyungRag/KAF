@@ -7,6 +7,7 @@
     <meta name="description" content="여행 조건에 맞는 항공권 가격 기회를 지도에서 찾는 KAF 프로토타입" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>KAF · 항공권 가격 기회 탐색</title>
+    <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -108,7 +109,7 @@
               <span>세금·유류할증료 포함</span>
               <span class="help-dot" title="켜면 세금과 유류할증료를 포함한 총액으로 검색합니다.">?</span>
             </label>
-            <button class="search-button" type="submit"><span aria-hidden="true">⌕</span> 가격 기회 찾기</button>
+            <button class="search-button" type="submit"><span aria-hidden="true">⌕</span> 검색</button>
           </div>
           <p class="form-error" id="form-error" role="alert" hidden></p>
         </form>
@@ -131,33 +132,12 @@
 
         <div class="results-layout">
           <div class="map-card">
-            <div class="map-heading"><div><strong>목적지 지도</strong><span>마커를 선택해 가격을 확인하세요</span></div><span class="map-compass" aria-hidden="true">N</span></div>
+            <div class="map-heading"><div><strong>목적지 지도</strong><span>표시된 점을 눌러 공항과 예시 운임을 확인하세요</span></div><span class="map-compass" aria-hidden="true">N</span></div>
             <div class="map-canvas" id="map-canvas" role="group" aria-label="검색 결과 목적지 지도">
-              <svg class="world-map" viewBox="0 0 1000 500" role="img" aria-label="세계 지도 배경">
-                <defs>
-                  <pattern id="map-grid" width="125" height="83.33" patternUnits="userSpaceOnUse">
-                    <path d="M 125 0 L 0 0 0 83.33" fill="none" stroke="#dce6ec" stroke-width="1" />
-                  </pattern>
-                  <linearGradient id="ocean" x1="0" x2="1" y1="0" y2="1">
-                    <stop offset="0" stop-color="#eff8fb" />
-                    <stop offset="1" stop-color="#e6f2f5" />
-                  </linearGradient>
-                </defs>
-                <rect width="1000" height="500" rx="20" fill="url(#ocean)" />
-                <rect width="1000" height="500" rx="20" fill="url(#map-grid)" />
-                <g class="land" aria-hidden="true">
-                  <path d="M65 114 90 82 139 68 169 81 190 70 220 91 254 93 276 119 257 143 238 147 220 168 194 170 178 193 149 186 131 164 105 157 89 139 70 138Z" />
-                  <path d="M238 191 267 196 282 221 275 248 292 267 285 298 268 317 264 351 248 382 236 355 233 326 218 299 220 267 204 245 214 222Z" />
-                  <path d="M430 98 462 81 493 91 517 83 540 96 559 92 585 111 615 109 646 119 676 115 705 127 726 144 713 163 681 159 664 174 637 167 619 184 592 177 573 190 554 178 535 187 514 174 489 178 472 160 449 158 433 137Z" />
-                  <path d="M486 190 518 181 545 191 557 219 548 245 536 262 531 291 514 314 505 348 488 360 480 333 464 310 460 281 443 258 449 229 464 207Z" />
-                  <path d="M682 205 715 194 746 205 767 223 792 223 810 240 833 235 851 249 875 257 893 277 878 295 849 290 830 307 802 299 784 316 754 308 738 290 714 279 706 254 686 240Z" />
-                  <path d="M828 346 854 334 880 343 894 363 879 381 853 381 837 366Z" />
-                </g>
-              </svg>
-              <div class="map-markers" id="map-markers"></div>
-              <div class="map-legend"><span><i class="legend-dot hot"></i>매우 좋은 기회</span><span><i class="legend-dot normal"></i>가격 확인</span></div>
             </div>
-            <div class="map-footnote"><span class="sample-dot"></span>지도 좌표와 가격은 예시 데이터입니다</div>
+            <p class="map-unavailable" id="map-unavailable" role="status" hidden>지도를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</p>
+            <div class="map-legend" aria-hidden="true"><span><i class="legend-line"></i>직항 노선 예시</span><span><i class="legend-dot hot"></i>좋은 가격 기회</span></div>
+            <div class="map-footnote"><span class="sample-dot"></span>노선·운임은 예시 데이터입니다 · 실제 운항 정보가 아닙니다</div>
           </div>
 
           <aside class="results-panel" aria-label="목적지 가격 목록">
@@ -174,9 +154,10 @@
 
       <footer class="page-footer">
         <div><span class="footer-mark">K</span><span><strong>KAF</strong><small>좋은 여행은 좋은 가격을 찾는 것부터.</small></span></div>
-        <span>프로토타입 · KAF-001 · 실시간 항공권 검색 기능은 아직 제공하지 않습니다.</span>
+        <span>프로토타입 · KAF-002 · 실시간 항공권 검색 기능은 아직 제공하지 않습니다.</span>
       </footer>
     </main>
+    <script src="vendor/leaflet/leaflet.js"></script>
     <script type="module" src="src/app.js"></script>
   </body>
 </html>

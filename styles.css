@@ -92,19 +92,21 @@ h1 em { color: var(--teal); font-style: normal; }
 .map-heading div > span, .list-heading div > span { margin-top: 3px; color: #8a99a2; font-size: 10px; }
 .map-compass { display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid #e6edef; border-radius: 50%; color: #7c8e99; font-size: 9px; font-weight: 800; }
 .map-canvas { position: relative; height: 420px; margin: 0 12px; overflow: hidden; border-radius: 14px; background: #eaf5f7; }
-.world-map { position: absolute; inset: 0; width: 100%; height: 100%; }
-.land path { fill: #cfe2d8; stroke: #b9d3c6; stroke-width: 2; stroke-linejoin: round; }
-.map-markers { position: absolute; inset: 0; }
-.map-marker { position: absolute; display: flex; align-items: center; gap: 5px; transform: translate(-10px, -50%); border: 0; padding: 5px 8px 5px 5px; border-radius: 20px; color: #25505a; background: rgba(255,255,255,.97); box-shadow: 0 3px 9px rgba(37,80,90,.16); white-space: nowrap; font-size: 10px; font-weight: 800; transition: transform .15s, box-shadow .15s; }
-.map-marker:hover, .map-marker[aria-pressed='true'] { z-index: 2; transform: translate(-10px,-50%) scale(1.06); box-shadow: 0 5px 14px rgba(8,126,133,.3); }
-.marker-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px #d6efeb; }
-.map-marker.opportunity-hot .marker-dot { background: #e89642; box-shadow: 0 0 0 3px #faebd5; }
-.map-marker.opportunity-good .marker-dot { background: #2b9b77; box-shadow: 0 0 0 3px #d9f1e8; }
-.map-marker strong { font-size: 10px; }
-.map-legend { position: absolute; left: 13px; bottom: 12px; display: flex; gap: 12px; padding: 8px 10px; border: 1px solid rgba(220,231,232,.9); border-radius: 8px; color: #61747c; background: rgba(255,255,255,.93); font-size: 9px; }
+.map-canvas.leaflet-container { z-index: 0; color: var(--ink); font: inherit; }
+.map-canvas .leaflet-control-attribution { font-size: 9px; }
+.map-canvas .leaflet-popup-content-wrapper { border-radius: 10px; }
+.map-canvas .leaflet-popup-content { margin: 11px 13px; }
+.map-unavailable { margin: 8px 14px 0; color: #9b3d31; font-size: 11px; }
+.map-legend { display: flex; gap: 12px; width: fit-content; margin: 10px 15px 0; padding: 8px 10px; border: 1px solid rgba(220,231,232,.9); border-radius: 8px; color: #61747c; background: #fff; font-size: 9px; }
 .map-legend span { display: flex; align-items: center; gap: 5px; }
 .legend-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #2b9b77; }
 .legend-dot.hot { background: #e89642; }
+.legend-line { display: inline-block; width: 15px; height: 0; border-top: 2px solid var(--teal); }
+.map-popup { display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.map-popup strong { color: #233f4e; font-size: 12px; }
+.map-popup span { color: #627681; font-size: 10px; }
+.map-popup b { margin-top: 3px; color: #1c5960; font-size: 13px; }
+.map-popup small { color: #a06e2b; font-size: 9px; }
 .map-footnote { display: flex; align-items: center; gap: 7px; padding: 12px 18px 14px; color: #8a989f; font-size: 10px; }
 .sample-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5a04b; }
 
@@ -181,12 +183,7 @@ h1 em { color: var(--teal); font-style: normal; }
   .sort-control select { min-width: 117px; }
   .results-layout { display: flex; flex-direction: column; }
   .map-canvas { height: clamp(250px, 65vw, 360px); margin: 0 8px; }
-  .map-marker { gap: 4px; padding: 4px 6px 4px 4px; font-size: 8px; }
-  .map-marker.edge-east { transform: translate(-100%, -50%); }
-  .map-marker.edge-east:hover, .map-marker.edge-east[aria-pressed='true'] { transform: translate(-100%, -50%) scale(1.06); transform-origin: right center; }
-  .marker-dot { width: 7px; height: 7px; }
-  .map-marker strong { font-size: 8px; }
-  .map-legend { left: 8px; bottom: 8px; padding: 6px 7px; gap: 7px; font-size: 8px; }
+  .map-legend { margin: 8px 10px 0; padding: 6px 7px; gap: 7px; font-size: 8px; }
   .results-panel { min-height: 0; }
   .result-list { max-height: none; }
   .page-footer { align-items: start; flex-direction: column; gap: 11px; }
