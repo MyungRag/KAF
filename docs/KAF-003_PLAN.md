@@ -1,7 +1,7 @@
 # KAF-003 기획서
 
 - 작업 ID: KAF-003
-- 기획서 버전: 1.1
+- 기획서 버전: 1.2
 - 상태: 제공자·사용 권한 타당성 검토
 - 대상 저장소: MyungRag/KAF
 - 연결 이슈: [#7](https://github.com/MyungRag/KAF/issues/7)
@@ -40,6 +40,12 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 - 실제 대한항공·SkyTeam 노선 및 한국 시장(POS)별 운임 공급 여부는 공개 문서만으로 확인되지 않는다. 승인된 Sabre 계정에서 항공사·노선별 표본을 조회해야 한다.
 - 따라서 현재 실행 후보는 (a) Skyscanner에서 사용자가 직접 시작하는 정확한 날짜 검색과, (b) Sabre의 계약형 14일 이력 API를 각각 검토하는 것이다. 무인 일일 수집에는 자동 호출과 가격 보관·재표시를 허용하는 서면 계약이 있는 공급자만 사용한다.
 
+### Skyscanner 운임 제휴 링크 대안
+
+- Skyscanner의 **Affiliates Link API**는 항공권 운임 API가 아니다. 출발지·목적지·날짜 등을 포함한 링크를 만들어 사용자를 Skyscanner의 검색 결과 페이지로 보내는 리디렉션 API다. 제휴 계정의 Impact `mediaPartnerId`가 필요하며, 날짜 검색과 항공사·동맹 필터를 링크에 포함할 수 있다.
+- Live Prices API 승인을 받지 못하더라도 제휴 링크 온보딩이 가능하다면 KAF에서 검색 조건을 넘겨 사용자가 Skyscanner 웹사이트에서 실시간 가격을 직접 보게 하는 제품 경로가 될 수 있다. 다만 가격 응답은 KAF로 돌아오지 않으므로 KAF 내부 결과 표시, 가격 저장, 가격 이력 분석은 제공하지 못한다.
+- 따라서 링크 방식은 “외부 사이트에서 현재 운임 확인”의 대안으로 평가하고, “KAF가 운임을 받아 일일 기록”하는 요구의 해결책으로 간주하지 않는다. 제휴 링크 및 Impact 계정 자격은 별도로 확인한다.
+
 ### 기타 제공자 및 직접 연결
 
 - Duffel은 현재 서비스 계약에서 메타검색 목적의 사용을 제한한다. KAF의 여러 항공사 가격 비교 용도로는 사용하지 않는다. 서비스 계약 예외가 서면 승인될 경우에만 재검토한다.
@@ -54,6 +60,9 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 - [Skyscanner Live Prices 검색 조건](https://developers.skyscanner.net/docs/flights-live-prices/query-object)
 - [Skyscanner Flights Indicative Prices 개요](https://developers.skyscanner.net/docs/flights-indicative-prices/overview)
 - [Skyscanner 가격 관련 FAQ](https://developers.skyscanner.net/docs/faqs)
+- [Skyscanner Affiliates Link API 개요](https://developers.skyscanner.net/docs/referrals/overview)
+- [Skyscanner 항공편 제휴 링크 매개변수](https://developers.skyscanner.net/docs/referrals/flights-parameters)
+- [Skyscanner 제휴 추적 및 Impact 계정](https://developers.skyscanner.net/docs/referrals/tracking)
 - [Sabre Low Fare History API](https://developer.sabre.com/rest-api/low-fare-history)
 - [Sabre API 자격 증명과 권한 안내](https://developer.sabre.com/guide/get-token/get-token)
 - [Sabre Flight Search API](https://developer.sabre.com/rest-api/flightsearch-api/v1)
@@ -66,9 +75,10 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 2. 승인 계정이 생기면 대한항공 및 SkyTeam 항공사를 구분해 실제 노선·날짜·직항 조건별 콘텐츠를 조회할 검증 절차를 정한다. 항공사 필터만으로 노선 보유를 추정하지 않는다.
 3. 사용자 시작 검색과 예약 링크 흐름, 날짜 범위 탐색을 위한 Indicative 결과 사용 조건을 구분한다.
 4. 매일 자동 검색이 허용되는 제공자를 찾는다. Skyscanner의 사용자 시작 검색 조건과 Sabre Low Fare History 같은 계약형 대안을 구분하고, 각 제공자의 호출 한도·요금·자동화 허용 범위를 서면 근거로 확인한다. 호출량은 노선 수 × 정확한 여정 조건 수로 산정한다.
-5. 가격 응답을 장기 저장하고 KAF에 이력으로 표시할 수 있는지, 허용 저장 기간과 삭제·갱신 규칙을 문서나 서면 답변으로 확인한다.
-6. 진행 가능하면 단일 표본 검색 조건과 서버 측 연결·가격 관찰 저장소의 설계안을 제안한다.
-7. 근거에 따라 `진행`, `조건부 진행`, `보류` 중 하나로 결론 내고 미확정 조건을 기록한다.
+5. 실시간 운임 API가 승인되지 않을 때의 Skyscanner 외부 검색 링크 대안을 평가한다. 이 경로가 가격 응답을 KAF로 반환하지 않는다는 제한과 제휴 계정 요구를 명시한다.
+6. 가격 응답을 장기 저장하고 KAF에 이력으로 표시할 수 있는지, 허용 저장 기간과 삭제·갱신 규칙을 문서나 서면 답변으로 확인한다.
+7. 진행 가능하면 단일 표본 검색 조건과 서버 측 연결·가격 관찰 저장소의 설계안을 제안한다.
+8. 근거에 따라 `진행`, `조건부 진행`, `보류` 중 하나로 결론 내고 미확정 조건을 기록한다.
 
 ## 5. 표본 검색과 기록 데이터 초안
 
@@ -110,4 +120,4 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 - 표본 검색 사양, 가격 관찰 데이터 초안, 보안·시스템 설계 초안
 - `진행 / 조건부 진행 / 보류` 결론 및 구현 선행 조건
 
-완료 판정은 `docs/KAF-003_ACCEPTANCE.md` 버전 1.1을 따른다.
+완료 판정은 `docs/KAF-003_ACCEPTANCE.md` 버전 1.2를 따른다.
