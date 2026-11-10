@@ -59,10 +59,13 @@ export function getPriceStats(offer, history, filters, asOf = new Date()) {
 export function getPriceScore(current, min, average) {
   if (![current, min, average].every(Number.isFinite) || min <= 0) return "insufficient";
   if (current <= min) return "buy";
+  // The average boundary takes priority over premium bands so low-volatility
+  // histories never classify an above-average fare as a buying opportunity.
+  if (current > average) return "wait";
+  if (current === average) return "normal";
   if (current <= min * 1.05) return "excellent";
   if (current <= min * 1.1) return "good";
-  if (current <= average) return "normal";
-  return "wait";
+  return "normal";
 }
 
 export const SCORE_DETAILS = {

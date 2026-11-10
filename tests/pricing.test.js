@@ -32,16 +32,18 @@ function sample(observedAt, priceInclTax, changes = {}) {
   };
 }
 
-test("price score follows non-overlapping specification boundaries in order", () => {
+test("price score applies the v1.1 average boundary before overlapping premium bands", () => {
   assert.equal(getPriceScore(99, 100, 130), "buy");
   assert.equal(getPriceScore(100, 100, 130), "buy");
-  assert.equal(getPriceScore(105, 100, 130), "excellent");
-  assert.equal(getPriceScore(105.01, 100, 130), "good");
-  assert.equal(getPriceScore(110, 100, 130), "good");
-  assert.equal(getPriceScore(110.01, 100, 130), "normal");
-  assert.equal(getPriceScore(130, 100, 130), "normal");
-  assert.equal(getPriceScore(130.01, 100, 130), "wait");
-  assert.equal(getPriceScore(104, 100, 103), "excellent", "earlier threshold wins if a narrow range overlaps average");
+  assert.equal(getPriceScore(105, 100, 106), "excellent");
+  assert.equal(getPriceScore(104, 100, 106), "excellent");
+  assert.equal(getPriceScore(105.01, 100, 120), "good");
+  assert.equal(getPriceScore(110, 100, 120), "good");
+  assert.equal(getPriceScore(110.01, 100, 120), "normal");
+  assert.equal(getPriceScore(120, 100, 120), "normal");
+  assert.equal(getPriceScore(120.01, 100, 120), "wait");
+  assert.equal(getPriceScore(104, 100, 103), "wait", "average is 3% above the low, so any fare above average must wait");
+  assert.equal(getPriceScore(103, 100, 103), "normal", "an average-price fare stays normal even inside the +5% band");
   assert.equal(getPriceScore(100, 0, 130), "insufficient");
 });
 
