@@ -1,7 +1,7 @@
 # KAF-003 기획서
 
 - 작업 ID: KAF-003
-- 기획서 버전: 1.2
+- 기획서 버전: 1.3
 - 상태: 제공자·사용 권한 타당성 검토
 - 대상 저장소: MyungRag/KAF
 - 연결 이슈: [#7](https://github.com/MyungRag/KAF/issues/7)
@@ -27,6 +27,8 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 ### Skyscanner
 
 - API 접근은 Partnerships 팀에 신청한 뒤 검토·승인을 받아야 한다. 승인은 보장되지 않았고 이번 조사에서 신청을 제출하지 않았다. 인증 키는 HTTPS 요청의 `x-api-key` 헤더를 사용하며 브라우저 코드나 공개 저장소에 두면 안 된다.
+- Skyscanner Travel API는 상업용이다. 공식 신청 안내는 established business와 큰 사용자 규모를 요구하며, 비상업 개인, 사업계획·사전 개발 제품이 부족한 스타트업, 월간 활성 사용자 10만 명 미만의 저트래픽 사이트는 접근 대상이 아니라고 명시한다. KAF는 현재 로컬 시제품이며 사용자 수·사업계획·출시 제품을 제시할 자료가 없어 자격을 입증하지 못한 상태다.
+- 공식 안내의 신청 검토 회신 목표는 2주 이내다. 이는 신청 결과 회신 기간이며, 승인 후 계정 설정·API 연결 완료까지의 기간은 공개되어 있지 않다. 기준 미달로 판단되면 회신을 기다려도 API 접근으로 이어지지 않을 수 있다.
 - Flights Live Prices는 특정 출발지·목적지와 날짜 검색에서 현재 파트너 가격과 예약 가능한 여정을 조회하는 API다. `/create`와 `/poll` 검색 흐름 및 항공사 필터를 제공한다. 다만 해당 검색 필터의 존재가 대한항공 또는 모든 SkyTeam 항공사의 모든 노선·날짜 운임을 보장하지는 않는다. 실제 보유 콘텐츠는 승인된 계정으로 표본 검색해야 한다.
 - 이용 지침은 정확한 출발지·목적지·날짜가 정해진 사용자 시작 검색에 Live Pricing을 사용하도록 하고, 사용자 동작 없는 자동 Live Pricing 호출은 하지 않도록 한다. 라이브 검색의 일정 비율이 제휴 예약 링크 클릭으로 이어지는 서비스 전제를 제시한다. KAF의 매일 자동 수집은 현재 공개 지침 그대로는 진행할 수 없다.
 - Flights Indicative Prices는 여러 목적지나 날짜를 넓게 탐색하는 데 쓸 수 있지만, 실시간이 아닌 캐시 참고 가격이다. 가격을 몇 일 보관할 수 있다고 설명하므로, KAF가 자체적으로 쌓을 365일 운임 이력을 대신하지 않는다.
@@ -36,6 +38,7 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 
 - Sabre **Low Fare History API**는 특정 도시쌍과 여행일 조합에 대해 현재 날짜와 직전 14일의 조회일별 최저 직항 운임 및 전체 최저 운임을 반환한다고 명시한다. 이 자료는 Sabre 캐시에 있는 검색 운임을 기반으로 하며, 모든 항공사·시장 가격을 빠짐없이 실시간 조회한다는 의미는 아니다.
 - 이 API는 별도 활성화와 **Sabre Developer Hub / Travel Insight Engine Amendment** 서명이 필요하다. Sabre 문서는 담당자 또는 계약을 통해 API·환경별 권한을 받도록 안내한다. 따라서 공개 문서에 API가 있다고 바로 실제 키나 상용 호출 권한이 생기는 것은 아니다.
+- Sabre Developer Hub의 무료 자격 증명은 일부 REST API의 인증 환경 테스트에 한정될 수 있다. Low Fare History의 활성화·계약 변경과 상용 데이터 접근 비용은 공개 문서에서 확인하지 못했다. 무료라고 가정하지 말고, 담당자에게 활성화 비용·검색 과금·최소 계약 조건·한국 시장 콘텐츠 요금을 함께 견적 요청한다.
 - KAF가 원하는 1년치 이력을 바로 제공하지는 않는다. 단기 14일 추이의 대체 후보로 검토하고, 이후 매일 관측값을 자체 누적할 수 있는지와 데이터 저장·표시 권한을 계약에서 확인한다.
 - 실제 대한항공·SkyTeam 노선 및 한국 시장(POS)별 운임 공급 여부는 공개 문서만으로 확인되지 않는다. 승인된 Sabre 계정에서 항공사·노선별 표본을 조회해야 한다.
 - 따라서 현재 실행 후보는 (a) Skyscanner에서 사용자가 직접 시작하는 정확한 날짜 검색과, (b) Sabre의 계약형 14일 이력 API를 각각 검토하는 것이다. 무인 일일 수집에는 자동 호출과 가격 보관·재표시를 허용하는 서면 계약이 있는 공급자만 사용한다.
@@ -55,6 +58,8 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 ### 참고한 공식 문서
 
 - [Skyscanner API 접근 및 인증](https://developers.skyscanner.net/docs/getting-started/authentication)
+- [Skyscanner Travel API 신청 자격 및 회신 기간](https://www.partners.skyscanner.net/contact/travel-api)
+- [Skyscanner Travel API 신청 흐름](https://www.partners.skyscanner.net/product/travel-api)
 - [Skyscanner API 이용 지침](https://developers.skyscanner.net/docs/getting-started/usage-guidelines)
 - [Skyscanner Flights Live Prices 개요](https://developers.skyscanner.net/docs/flights-live-prices/overview)
 - [Skyscanner Live Prices 검색 조건](https://developers.skyscanner.net/docs/flights-live-prices/query-object)
@@ -120,4 +125,4 @@ KAF의 목적지·날짜 우선 탐색은 정확한 여정이 아직 정해지�
 - 표본 검색 사양, 가격 관찰 데이터 초안, 보안·시스템 설계 초안
 - `진행 / 조건부 진행 / 보류` 결론 및 구현 선행 조건
 
-완료 판정은 `docs/KAF-003_ACCEPTANCE.md` 버전 1.2를 따른다.
+완료 판정은 `docs/KAF-003_ACCEPTANCE.md` 버전 1.3을 따른다.
