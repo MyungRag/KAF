@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f7fb" />
+    <meta name="description" content="여행 조건에 맞는 항공권 가격 기회를 지도에서 찾는 KAF 프로토타입" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>KAF · 항공권 가격 기회 탐색</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="KAF 홈">
+          <span class="brand-mark" aria-hidden="true">K</span>
+          <span><strong>KAF</strong><small>PRICE OPPORTUNITY FINDER</small></span>
+        </a>
+        <div class="topbar-right">
+          <span class="prototype-label"><span></span>프로토타입</span>
+          <button class="avatar" type="button" aria-label="게스트 사용자">게</button>
+        </div>
+      </header>
+
+      <section class="intro-row">
+        <div>
+          <p class="eyebrow">DESTINATION SECOND · PRICE FIRST</p>
+          <h1>갈 곳보다 <em>좋은 가격</em>을 먼저 찾아요.</h1>
+          <p class="intro-copy">여행 조건을 정하면, 지금 가격 기회가 좋은 목적지를 보여드립니다.</p>
+        </div>
+        <div class="demo-banner" role="note">
+          <span class="demo-icon" aria-hidden="true">i</span>
+          <span><strong>예시 데이터 · 실시간 아님</strong><small>이 화면의 운임과 가격 이력은 기능 확인용입니다.</small></span>
+        </div>
+      </section>
+
+      <section class="search-panel" aria-labelledby="search-heading">
+        <div class="panel-heading">
+          <div>
+            <span class="step-label">01 · 여행 조건</span>
+            <h2 id="search-heading">어떤 여행을 찾고 있나요?</h2>
+          </div>
+          <button class="text-button" id="reset-button" type="button">조건 초기화</button>
+        </div>
+        <form id="search-form" novalidate>
+          <div class="form-grid">
+            <label class="field field-origin">
+              <span>출발지</span>
+              <select name="origin" id="origin">
+                <option value="ICN">인천 · ICN</option>
+                <option value="SEL">서울 전체 · SEL</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>출발 가능 기간 · 시작</span>
+              <input name="dateStart" id="date-start" type="date" required />
+            </label>
+            <label class="field">
+              <span>종료</span>
+              <input name="dateEnd" id="date-end" type="date" required />
+            </label>
+            <label class="field field-days">
+              <span>여행 일수</span>
+              <div class="range-inputs">
+                <input name="daysMin" id="days-min" type="number" min="1" value="7" aria-label="최소 여행 일수" required />
+                <span>~</span>
+                <input name="daysMax" id="days-max" type="number" min="1" value="10" aria-label="최대 여행 일수" required />
+                <small>일</small>
+              </div>
+            </label>
+            <label class="field">
+              <span>좌석 등급</span>
+              <select name="cabin" id="cabin">
+                <option value="economy">일반석</option>
+                <option value="business">비즈니스석</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>항공사 조건</span>
+              <select name="airline" id="airline">
+                <option value="skyteam">대한항공 또는 SkyTeam</option>
+                <option value="korean">대한항공만</option>
+                <option value="all">전체 항공사</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>목적지 지역</span>
+              <select name="region" id="region">
+                <option value="all">전체 지역</option>
+                <option value="asia">아시아</option>
+                <option value="europe">유럽</option>
+              </select>
+            </label>
+            <label class="field field-budget">
+              <span>최대 예산 <small>(선택)</small></span>
+              <div class="money-input"><input name="budget" id="budget" type="number" min="1" step="any" value="1000000" /><span>원</span></div>
+            </label>
+          </div>
+          <div class="search-controls">
+            <label class="toggle-row">
+              <input name="directOnly" id="direct-only" type="checkbox" checked />
+              <span class="toggle-ui" aria-hidden="true"></span>
+              <span>직항만</span>
+            </label>
+            <label class="toggle-row tax-toggle">
+              <input name="includeTaxes" id="include-taxes" type="checkbox" checked />
+              <span class="toggle-ui" aria-hidden="true"></span>
+              <span>세금·유류할증료 포함</span>
+              <span class="help-dot" title="켜면 세금과 유류할증료를 포함한 총액으로 검색합니다.">?</span>
+            </label>
+            <button class="search-button" type="submit"><span aria-hidden="true">⌕</span> 가격 기회 찾기</button>
+          </div>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section class="results-section" aria-labelledby="results-heading">
+        <div class="results-header">
+          <div>
+            <span class="step-label">02 · 목적지 탐색</span>
+            <h2 id="results-heading">가격 기회가 좋은 곳</h2>
+            <p id="result-summary" class="result-summary" aria-live="polite"></p>
+          </div>
+          <label class="sort-control">정렬 기준
+            <select id="sort-select" aria-label="결과 정렬 기준">
+              <option value="opportunity">가격 기회순</option>
+              <option value="price">현재 가격 낮은순</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="results-layout">
+          <div class="map-card">
+            <div class="map-heading"><div><strong>목적지 지도</strong><span>마커를 선택해 가격을 확인하세요</span></div><span class="map-compass" aria-hidden="true">N</span></div>
+            <div class="map-canvas" id="map-canvas" role="group" aria-label="검색 결과 목적지 지도">
+              <svg class="world-map" viewBox="0 0 1000 500" role="img" aria-label="세계 지도 배경">
+                <defs>
+                  <pattern id="map-grid" width="125" height="83.33" patternUnits="userSpaceOnUse">
+                    <path d="M 125 0 L 0 0 0 83.33" fill="none" stroke="#dce6ec" stroke-width="1" />
+                  </pattern>
+                  <linearGradient id="ocean" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stop-color="#eff8fb" />
+                    <stop offset="1" stop-color="#e6f2f5" />
+                  </linearGradient>
+                </defs>
+                <rect width="1000" height="500" rx="20" fill="url(#ocean)" />
+                <rect width="1000" height="500" rx="20" fill="url(#map-grid)" />
+                <g class="land" aria-hidden="true">
+                  <path d="M65 114 90 82 139 68 169 81 190 70 220 91 254 93 276 119 257 143 238 147 220 168 194 170 178 193 149 186 131 164 105 157 89 139 70 138Z" />
+                  <path d="M238 191 267 196 282 221 275 248 292 267 285 298 268 317 264 351 248 382 236 355 233 326 218 299 220 267 204 245 214 222Z" />
+                  <path d="M430 98 462 81 493 91 517 83 540 96 559 92 585 111 615 109 646 119 676 115 705 127 726 144 713 163 681 159 664 174 637 167 619 184 592 177 573 190 554 178 535 187 514 174 489 178 472 160 449 158 433 137Z" />
+                  <path d="M486 190 518 181 545 191 557 219 548 245 536 262 531 291 514 314 505 348 488 360 480 333 464 310 460 281 443 258 449 229 464 207Z" />
+                  <path d="M682 205 715 194 746 205 767 223 792 223 810 240 833 235 851 249 875 257 893 277 878 295 849 290 830 307 802 299 784 316 754 308 738 290 714 279 706 254 686 240Z" />
+                  <path d="M828 346 854 334 880 343 894 363 879 381 853 381 837 366Z" />
+                </g>
+              </svg>
+              <div class="map-markers" id="map-markers"></div>
+              <div class="map-legend"><span><i class="legend-dot hot"></i>매우 좋은 기회</span><span><i class="legend-dot normal"></i>가격 확인</span></div>
+            </div>
+            <div class="map-footnote"><span class="sample-dot"></span>지도 좌표와 가격은 예시 데이터입니다</div>
+          </div>
+
+          <aside class="results-panel" aria-label="목적지 가격 목록">
+            <div class="list-heading"><div><strong>목적지별 최저 운임</strong><span id="result-count"></span></div><button class="filter-chip" id="active-filter" type="button" hidden></button></div>
+            <div class="result-list" id="result-list" aria-live="polite"></div>
+            <div class="empty-state" id="empty-state" hidden>
+              <span class="empty-icon" aria-hidden="true">⌕</span>
+              <strong>조건에 맞는 목적지가 없어요</strong>
+              <p>날짜 범위나 예산을 넓혀 다시 검색해 보세요.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <div><span class="footer-mark">K</span><span><strong>KAF</strong><small>좋은 여행은 좋은 가격을 찾는 것부터.</small></span></div>
+        <span>프로토타입 · KAF-001 · 실시간 항공권 검색 기능은 아직 제공하지 않습니다.</span>
+      </footer>
+    </main>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
