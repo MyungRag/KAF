@@ -132,7 +132,8 @@ function markerMarkup(result) {
   const { x, y, dx, dy } = positionFor(result);
   const style = `left:calc(${x}% + ${dx}px);top:calc(${y}% + ${dy}px)`;
   const markerClass = result.score === "buy" ? "opportunity-hot" : ["excellent", "good"].includes(result.score) ? "opportunity-good" : "";
-  return `<button class="map-marker ${markerClass}" type="button" style="${style}" data-destination="${result.destinationCode}" aria-label="${result.destination} 현재 예시 가격 ${formatWon(result.currentPrice)}, ${result.scoreDetails.label}" aria-pressed="${selectedDestination === result.destinationCode}"><span class="marker-dot"></span><span>${result.destination} <strong>${priceLabel(result.currentPrice)}</strong></span></button>`;
+  const edgeClass = ["NRT", "BKK", "DAD", "SIN"].includes(result.destinationCode) ? "edge-east" : "";
+  return `<button class="map-marker ${markerClass} ${edgeClass}" type="button" style="${style}" data-destination="${result.destinationCode}" aria-label="${result.destination} 현재 예시 가격 ${formatWon(result.currentPrice)}, ${result.scoreDetails.label}" aria-pressed="${selectedDestination === result.destinationCode}"><span class="marker-dot"></span><span>${result.destination} <strong>${priceLabel(result.currentPrice)}</strong></span></button>`;
 }
 
 function updateSelection(destinationCode) {

@@ -182,6 +182,8 @@ h1 em { color: var(--teal); font-style: normal; }
   .results-layout { display: flex; flex-direction: column; }
   .map-canvas { height: clamp(250px, 65vw, 360px); margin: 0 8px; }
   .map-marker { gap: 4px; padding: 4px 6px 4px 4px; font-size: 8px; }
+  .map-marker.edge-east { transform: translate(-100%, -50%); }
+  .map-marker.edge-east:hover, .map-marker.edge-east[aria-pressed='true'] { transform: translate(-100%, -50%) scale(1.06); transform-origin: right center; }
   .marker-dot { width: 7px; height: 7px; }
   .map-marker strong { font-size: 8px; }
   .map-legend { left: 8px; bottom: 8px; padding: 6px 7px; gap: 7px; font-size: 8px; }
