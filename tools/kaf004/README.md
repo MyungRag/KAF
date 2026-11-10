@@ -39,3 +39,26 @@ CSV는 Excel에서 열 수 있으며 UTF-8 BOM을 사용합니다. `fare_total_k
 - 기본 조건: 성인 1명, 일반석, 대한항공(KE), 직항, KRW
 
 공휴일 목록을 넣지 않으면 `leave_weekdays`는 공휴일 차감 전 평일 수입니다. CSV에는 개인 운임 기록이 추가될 수 있으므로 Git에 커밋하지 마세요.
+
+## Amadeus 표본 운임 조회
+
+`search_amadeus.py`는 CSV의 조건을 Amadeus Flight Offers Search에 보내고, KE가 실제 운항하는 직항 오퍼의 최저 총액을 화면에만 표시합니다. API 문서상 `includedAirlineCodes=KE`는 항공사 필터이고 `nonStop=true`는 직항 필터입니다. 응답에 운항 항공사 코드가 없으면 대한항공 운항편이라고 추정하지 않습니다.
+
+1. [Amadeus for Developers](https://developers.amadeus.com/self-service)에서 계정을 만들고 Self-Service API 앱을 등록합니다.
+2. `AMADEUS_CLIENT_ID`와 `AMADEUS_CLIENT_SECRET`을 PowerShell의 현재 창에만 설정합니다. 키를 이 저장소, CSV, 채팅에 쓰지 않습니다.
+
+```powershell
+$env:AMADEUS_CLIENT_ID = "발급받은 Client ID"
+$env:AMADEUS_CLIENT_SECRET = "발급받은 Client Secret"
+py tools/kaf004/search_amadeus.py --input "$env:USERPROFILE\Documents\kaf-pilot-week.csv"
+```
+
+기본값은 `test` 환경이라 일부 시험 데이터만 반환할 수 있습니다. test 결과를 실시간 가격이나 가격 이력으로 해석하지 않습니다.
+
+실제 조회에 쓸 프로덕션 앱과 약관을 확인한 뒤에만 다음처럼 호출합니다.
+
+```powershell
+py tools/kaf004/search_amadeus.py --input "$env:USERPROFILE\Documents\kaf-pilot-week.csv" --environment production --confirm-production
+```
+
+프로덕션은 무료 월간 호출량을 초과하면 API별 과금이 발생할 수 있습니다. 이 명령은 입력 CSV 행 수만큼 검색하며 기본 실행 한도는 12회입니다. 더 큰 한도는 `--max-requests`로 명시해야 합니다. 프로그램은 가격 데이터를 파일이나 데이터베이스에 저장하지 않습니다. Amadeus의 실제 KE 노선 제공, 프로덕션 약관, 장기 가격 관찰값 저장 권한은 별도로 확인해야 합니다.

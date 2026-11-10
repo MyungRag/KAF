@@ -35,7 +35,7 @@
 
 ## 3. 진행 단계
 
-초기 준비물은 `tools/kaf004/generate_search_grid.py`와 `tools/kaf004/pilot_routes.json`이다. 이 도구는 운임을 검색하지 않고, 위 조건의 날짜·목적지 조합을 로컬 CSV 검색표로 만든다.
+초기 도구는 `tools/kaf004/generate_search_grid.py`, `tools/kaf004/search_amadeus.py`, `tools/kaf004/pilot_routes.json`이다. 첫 도구는 날짜·목적지 검색표를 만든다. 두 번째 도구는 키가 제공된 경우 Amadeus 검색 결과를 화면에만 표시하며 아직 자동으로 가격을 저장하지 않는다.
 
 ### 단계 A — 3개 목적지에서 조회 가능성 확인
 
